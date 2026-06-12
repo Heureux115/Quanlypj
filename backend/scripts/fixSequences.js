@@ -1,5 +1,5 @@
 require("dotenv").config();
-const prisma = require("../prismaClient");
+const prisma = require("../src/prismaClient");
 
 const tables = [
     "User",

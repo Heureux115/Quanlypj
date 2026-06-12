@@ -22,13 +22,14 @@ http://localhost:5173
 
 ## Cấu hình API
 
-Nếu backend chạy khác origin, tạo file `.env` trong thư mục `ITSS/frontend`:
+Tạo file `.env` từ `.env.example` nếu backend chạy khác origin hoặc cần cấu hình Socket.IO rõ ràng:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000
+VITE_SOCKET_URL=http://localhost:5000
 ```
 
-Nếu không cấu hình, frontend sẽ gọi API cùng origin với tiền tố `/api`.
+Nếu không cấu hình `VITE_API_BASE_URL`, frontend sẽ gọi API cùng origin với tiền tố `/api`.
 
 ## Build production
 

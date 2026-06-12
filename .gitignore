@@ -8,7 +8,9 @@ node_modules/
 # Logs and build output
 *.log
 frontend/dist/
+backend/dist/
 dist/
 
 # Generated Prisma artifacts
 /generated/prisma/
+backend/generated/prisma/

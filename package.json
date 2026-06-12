@@ -1,31 +1,18 @@
 {
-  "name": "itss",
+  "name": "quanlypj",
   "version": "1.0.0",
+  "private": true,
   "description": "Student Project Management System",
-  "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js",
-    "prisma:migrate": "npx prisma migrate dev",
-    "prisma:studio": "npx prisma studio",
-    "prisma:generate": "npx prisma generate",
-    "seed": "node scripts/seed.js",
-    "db:clear": "node scripts/clearDatabase.js",
-    "db:fix-sequences": "node scripts/fixSequences.js",
-    "smoke:test": "node scripts/smokeTest.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "@prisma/client": "^5.22.0",
-    "bcrypt": "^6.0.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "prisma": "^5.22.0",
-    "socket.io": "^4.8.3"
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "start": "npm start --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "prisma:generate": "npm run prisma:generate --prefix backend",
+    "prisma:migrate": "npm run prisma:migrate --prefix backend",
+    "seed": "npm run seed --prefix backend",
+    "smoke:test": "npm run smoke:test --prefix backend",
+    "db:clear": "npm run db:clear --prefix backend",
+    "db:fix-sequences": "npm run db:fix-sequences --prefix backend"
   }
 }

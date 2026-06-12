@@ -1,6 +1,6 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const prisma = require("../prismaClient");
+const prisma = require("../src/prismaClient");
 
 const PASSWORD = "123456";
 

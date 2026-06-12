@@ -3,12 +3,12 @@ if (!process.env.API_BASE_URL && process.env.SMOKE_START_SERVER !== "false") {
 }
 
 const API_BASE_URL = process.env.API_BASE_URL || `http://127.0.0.1:${process.env.PORT || 5000}/api`;
-const bootedServer = process.env.SMOKE_START_SERVER === "false" ? null : require("../index").server;
+const bootedServer = process.env.SMOKE_START_SERVER === "false" ? null : require("../src/server").server;
 
 const accounts = {
     lecturer: { email: "lecturer@itss.local", password: "123456" },
     student: { email: "student1@itss.local", password: "123456" },
-    admin: { email: "admin@test.com", password: "123456" },
+    admin: { email: "admin@itss.local", password: "123456" },
 };
 
 async function request(path, options = {}, token) {
