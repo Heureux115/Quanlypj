@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  LECTURER
+  STUDENT
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  OVERDUE
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum GitActivityType {
+  COMMIT
+  PUSH
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String        @unique
+  password    String
+  role        Role          @default(STUDENT)
+  status      AccountStatus @default(ACTIVE)
+  gitUsername String? // Dùng để đồng bộ commit
+  avatarUrl   String?
+
+  projects             Project[]          @relation("LecturerProjects")
+  memberships          GroupMember[]
+  joinRequests         GroupJoinRequest[] @relation("JoinRequestUser")
+  reviewedJoinRequests GroupJoinRequest[] @relation("JoinRequestReviewer")
+  ledGroups            Group[]            @relation("GroupLeader")
+  tasks                Task[]             @relation("AssignedTasks")
+  commits              Commit[]
+  gitActivities        GitActivity[]
+  reviewsGiven         Evaluation[]       @relation("Reviewer")
+  reviewsGot           Evaluation[]       @relation("Reviewee")
+  documents            Document[]
+  createdAt            DateTime           @default(now())
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  maxGroups   Int       @default(5)
+  maxMembers  Int       @default(5)
+  criteria    String? // JSON string: tiêu chí đánh giá
+  deadline    DateTime?
+  createdBy   Int
+  lecturer    User      @relation("LecturerProjects", fields: [createdBy], references: [id])
+  groups      Group[]
+  createdAt   DateTime  @default(now())
+}
+
+model Group {
+  id            Int                @id @default(autoincrement())
+  name          String
+  projectId     Int
+  leaderId      Int?
+  gitRepoUrl    String?
+  project       Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  leader        User?              @relation("GroupLeader", fields: [leaderId], references: [id])
+  members       GroupMember[]
+  joinRequests  GroupJoinRequest[]
+  tasks         Task[]
+  commits       Commit[]
+  gitActivities GitActivity[]
+  messages      ChatMessage[]
+  createdAt     DateTime           @default(now())
+}
+
+model GroupMember {
+  id       Int      @id @default(autoincrement())
+  groupId  Int
+  userId   Int
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+}
+
+model GroupJoinRequest {
+  id         Int               @id @default(autoincrement())
+  groupId    Int
+  userId     Int
+  status     JoinRequestStatus @default(PENDING)
+  message    String?
+  reviewedBy Int?
+  reviewedAt DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User  @relation("JoinRequestUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("JoinRequestReviewer", fields: [reviewedBy], references: [id])
+
+  @@index([groupId, status])
+  @@index([userId, status])
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  groupId     Int
+  assignedTo  Int?
+  deadline    DateTime
+  status      TaskStatus @default(TODO)
+  progress    Int        @default(0) // 0-100
+  group       Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  assignee    User?      @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  documents   Document[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Document {
+  id         Int      @id @default(autoincrement())
+  fileName   String
+  fileUrl    String
+  taskId     Int?
+  uploadedBy Int
+  task       Task?    @relation(fields: [taskId], references: [id])
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+  uploadedAt DateTime @default(now())
+}
+
+model Warning {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  groupId   Int
+  note      String?
+  createdBy Int
+  createdAt DateTime @default(now())
+}
+
+model FinalGrade {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  projectId Int
+  score     Float
+  comment   String?
+  createdBy Int
+}
+
+model Commit {
+  id          Int      @id @default(autoincrement())
+  hash        String   @unique
+  message     String
+  loc         Int // Lines of code changed
+  authorId    Int
+  groupId     Int
+  author      User     @relation(fields: [authorId], references: [id])
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  committedAt DateTime
+}
+
+model GitActivity {
+  id             Int             @id @default(autoincrement())
+  type           GitActivityType
+  externalId     String          @unique
+  groupId        Int
+  userId         Int?
+  authorName     String?
+  authorEmail    String?
+  authorUsername String?
+  message        String?
+  loc            Int             @default(0)
+  occurredAt     DateTime
+  metadata       String?
+  createdAt      DateTime        @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id])
+
+  @@index([groupId, type])
+  @@index([userId, type])
+  @@index([occurredAt])
+}
+
+model Evaluation {
+  id         Int      @id @default(autoincrement())
+  reviewerId Int
+  revieweeId Int
+  groupId    Int
+  score      Float // 0-10
+  comment    String?
+  reviewer   User     @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewee   User     @relation("Reviewee", fields: [revieweeId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([reviewerId, revieweeId, groupId])
+}
+
+model ChatMessage {
+  id       Int      @id @default(autoincrement())
+  groupId  Int
+  senderId Int
+  content  String
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sentAt   DateTime @default(now())
+}

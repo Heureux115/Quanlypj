@@ -1,0 +1,14 @@
+node_modules/
+
+# Keep environment variables out of version control
+.env
+.env.*
+!.env.example
+
+# Logs and build output
+*.log
+frontend/dist/
+dist/
+
+# Generated Prisma artifacts
+/generated/prisma/
